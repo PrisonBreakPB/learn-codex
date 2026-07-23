@@ -182,7 +182,7 @@ cargo test -p codex-app-server turn_start_jsonrpc_span_parents_core_turn_spans -
 
 本项目当前环境未安装 `cargo`，因此本轮只静态核对了测试源码，未宣称这些测试已在本机执行通过。
 
-## 对科研 Harness 的启发
+## 对其他 Agent Harness 的启发
 
 ### 已证实事实
 
@@ -193,7 +193,7 @@ cargo test -p codex-app-server turn_start_jsonrpc_span_parents_core_turn_spans -
 
 ### 设计推断
 
-- 科研任务中的“补充实验条件”“缩小检索范围”“更换数据集”等输入，可以设计为 steer，而不必粗暴地取消整个任务。
+- 长任务中的补充条件、范围调整或输入修正，可以设计为 steer，而不必粗暴地取消整个任务。
 - 工具调用、工具结果、用户修正和模型生成请求应形成可回放的事件链，便于复核实验决策。
 - 对可能改变实验环境的工具，审批和工作区边界应在工具运行时附近实施，而不是只依赖提示词约束。
 
