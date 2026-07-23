@@ -10,7 +10,7 @@
 
 1. 它怎样成为一个 turn？
 2. 正在运行时继续输入，为什么有时不是新 turn？
-3. 模型调用工具后，工具结果怎样回到下一次模型采样？
+3. 模型调用工具后，工具结果怎样回到下一次模型生成请求？
 4. TUI 怎样知道 turn 已开始、工具正在执行或 turn 已结束？
 
 本章只追踪默认交互式 TUI 路径。它不覆盖所有 CLI 子命令、IDE 客户端和云端工作流。
@@ -39,16 +39,22 @@ sequenceDiagram
     end
     R-->>A: EventMsg::TurnStarted
     A-->>T: turn/started 通知
-    R->>M: 带历史、指令与工具定义的采样请求
+    R->>M: 带历史、指令与工具定义的模型生成请求
     M-->>R: 消息或工具调用
     opt 模型请求工具
         R->>X: 调度 ToolCallRuntime
         X-->>R: 工具输出
-        R->>M: 下一次采样请求
+        R->>M: 下一次模型生成请求
     end
     R-->>A: turn/item、turn/completed 等事件
     A-->>T: 协议通知
 ```
+
+## 8 轮 Agent Loop 互动回放
+
+这一页刻意只保留 `History -> 请求模型生成 -> 工具调用 -> 结果写回 History` 的循环；前 7 轮展示工具调用如何让历史累加，第 8 轮展示模型在拥有足够上下文后给出最终回复并结束当前 turn。
+
+互动页源文件位于 [`agent-loop-lab/index.html`](./agent-loop-lab/index.html)。它使用预设教学数据，不调用真实模型或工具，也不是某次真实会话的逐项日志；循环机制和源码定位仍以本章固定上游基线为准。GitHub Pages 发布后，它将作为本章的在线互动版本；GitHub 的 Markdown 文件浏览页本身不会执行页面脚本。
 
 ## 新 Turn 与 Steer
 
@@ -85,7 +91,7 @@ sequenceDiagram
 
 `RegularTask` 先发出 `EventMsg::TurnStarted`，然后反复调用 `run_turn`；只要活动 turn 仍有 pending input，就会开始下一轮 `run_turn`。
 
-### 3. 组装一次采样
+### 3. 组装一次模型生成请求
 
 `run_turn` 会完成以下准备：
 
@@ -93,22 +99,22 @@ sequenceDiagram
 2. 注入 Skills 与 Plugins 产生的内容。
 3. 记录用户输入及 hook 产生的输入。
 4. 捕获当前 step 的工具、配置和环境视图。
-5. 从历史构建本次模型采样输入。
+5. 从历史构建本次模型生成请求的输入。
 
-之后 `run_sampling_request` 生成工具路由器和 `ToolCallRuntime`，通过 `ModelClientSession::stream` 消费模型响应流。
+之后 `run_sampling_request`（源码命名；本文称“模型生成请求”）生成工具路由器和 `ToolCallRuntime`，通过 `ModelClientSession::stream` 消费模型响应流。
 
 ### 4. 模型消息与工具调用分叉
 
 模型响应项完成时，`handle_output_item_done` 会尝试将其解析为工具调用：
 
-| 模型输出 | 核心处理 | 是否需要后续采样 |
+| 模型输出 | 核心处理 | 是否需要再次请求模型生成 |
 | --- | --- | --- |
 | 普通消息或推理项 | 转为 turn item、发出完成事件、写入历史 | 通常不需要 |
 | 工具调用 | 立即记录调用项，创建 `ToolCallRuntime` future | 需要 |
 | 可直接回复模型的工具错误 | 将错误写为函数调用输出 | 需要 |
 | 致命工具错误 | 中断当前路径 | 不继续 |
 
-工具 future 会先进入 `FuturesOrdered` 队列。模型响应流结束后，核心通过 `drain_in_flight` 等待这些 future，并把工具输出写入会话历史。当前 `run_turn` 的下一次采样循环从更新后的历史重新构建提示词，因此模型能看到工具结果。
+工具 future 会先进入 `FuturesOrdered` 队列。模型响应流结束后，核心通过 `drain_in_flight` 等待这些 future，并把工具输出写入会话历史。当前 `run_turn` 会从更新后的历史重新构建提示词，并再次请求模型生成，因此模型能看到工具结果。
 
 `needs_follow_up` 不只表示“有工具调用”：工具调用、待处理用户输入，以及模型返回 `end_turn = false` 等情况都会让 turn 继续。
 
@@ -130,7 +136,7 @@ TUI 收到通知后，先按 thread 路由，再交给 `ChatWidget::handle_serve
 | Core 提交用户输入 | `codex-rs/core/src/codex_thread.rs`，`submit_user_input_with_client_user_message_id`；`codex-rs/core/src/session/mod.rs`，`submit_user_input_with_client_user_message_id` |
 | 启动或 steer 任务 | `codex-rs/core/src/session/handlers.rs`，`user_input_or_turn_inner`；`codex-rs/core/src/session/mod.rs`，`steer_input` |
 | 普通 turn 任务 | `codex-rs/core/src/tasks/regular.rs`，`RegularTask::run` |
-| turn 和采样循环 | `codex-rs/core/src/session/turn.rs`，`run_turn`、`run_sampling_request`、`try_run_sampling_request` |
+| turn 和模型生成循环 | `codex-rs/core/src/session/turn.rs`，`run_turn`、`run_sampling_request`、`try_run_sampling_request` |
 | 工具项处理 | `codex-rs/core/src/stream_events_utils.rs`，`handle_output_item_done` |
 | 工具运行与并行闸门 | `codex-rs/core/src/tools/parallel.rs`，`ToolCallRuntime::handle_tool_call_with_source` |
 | App Server 消费并翻译事件 | `codex-rs/app-server/src/request_processors/thread_lifecycle.rs`；`codex-rs/app-server/src/bespoke_event_handling.rs` |
@@ -182,13 +188,13 @@ cargo test -p codex-app-server turn_start_jsonrpc_span_parents_core_turn_spans -
 
 - 用户输入与核心事件之间有明确的协议边界。
 - 一个活动 turn 可以接收 steering 输入，而不是只能被中断或等待结束。
-- 工具输出会进入会话历史，并成为下一次采样的可见上下文。
+- 工具输出会进入会话历史，并成为下一次模型生成请求的可见上下文。
 - 支持并行的工具与不支持并行的工具使用不同的执行闸门。
 
 ### 设计推断
 
 - 科研任务中的“补充实验条件”“缩小检索范围”“更换数据集”等输入，可以设计为 steer，而不必粗暴地取消整个任务。
-- 工具调用、工具结果、用户修正和模型采样应形成可回放的事件链，便于复核实验决策。
+- 工具调用、工具结果、用户修正和模型生成请求应形成可回放的事件链，便于复核实验决策。
 - 对可能改变实验环境的工具，审批和工作区边界应在工具运行时附近实施，而不是只依赖提示词约束。
 
 ### 待验证问题

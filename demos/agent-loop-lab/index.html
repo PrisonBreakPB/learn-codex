@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Agent Loop Lab Demos</title>
+  <link rel="stylesheet" href="./shared.css">
+</head>
+<body class="gallery-body">
+  <main class="gallery-shell">
+    <header class="gallery-hero">
+      <p class="eyebrow">learn-codex / Agent Loop Lab</p>
+      <h1>四种可视化原型</h1>
+      <p class="hero-copy">同一段预设 Agent Loop 轨迹，四种不同前端表达。先比较观看感受，再决定后续网站该走哪条路。</p>
+    </header>
+
+    <section class="inspiration-band" aria-label="Inspiration">
+      <div class="band-item">
+        <span class="band-label">roadmap.sh</span>
+        <span class="band-copy">节点清晰、路径感强、适合学习地图</span>
+      </div>
+      <div class="band-item">
+        <span class="band-label">Dify / n8n / Langflow</span>
+        <span class="band-copy">画布思维、节点运行、调试与分支清楚</span>
+      </div>
+      <div class="band-item">
+        <span class="band-label">tldraw</span>
+        <span class="band-copy">空间感强，适合把消息与状态做成“可移动对象”</span>
+      </div>
+    </section>
+
+    <section class="gallery-grid">
+      <article class="gallery-card">
+        <div class="card-head">
+          <div>
+            <h2>Demo A</h2>
+            <p>路线图模式</p>
+          </div>
+          <span class="card-tag">偏学习导航</span>
+        </div>
+        <iframe title="Demo A" src="./demo-roadmap.html"></iframe>
+        <p class="card-copy">借 roadmap.sh 的节点路径感，把一次 turn 变成一条可推进的学习路线。</p>
+        <a class="open-link" href="./demo-roadmap.html">打开完整 Demo</a>
+      </article>
+
+      <article class="gallery-card">
+        <div class="card-head">
+          <div>
+            <h2>Demo B</h2>
+            <p>工作流画布模式</p>
+          </div>
+          <span class="card-tag">偏系统结构</span>
+        </div>
+        <iframe title="Demo B" src="./demo-canvas.html"></iframe>
+        <p class="card-copy">借 Dify、n8n、Langflow 的可视流程，把模块、路径和状态切换放到同一画布。</p>
+        <a class="open-link" href="./demo-canvas.html">打开完整 Demo</a>
+      </article>
+
+      <article class="gallery-card">
+        <div class="card-head">
+          <div>
+            <h2>Demo C</h2>
+            <p>动态舞台模式</p>
+          </div>
+          <span class="card-tag">偏视觉冲击</span>
+        </div>
+        <iframe title="Demo C" src="./demo-stage.html"></iframe>
+        <p class="card-copy">把消息、工具调用、历史累积都变成会“移动”的对象，更适合首页或重点章节首屏。</p>
+        <a class="open-link" href="./demo-stage.html">打开完整 Demo</a>
+      </article>
+
+      <article class="gallery-card">
+        <div class="card-head">
+          <div>
+            <h2>Demo D</h2>
+            <p>时序追踪模式</p>
+          </div>
+          <span class="card-tag">偏精确复核</span>
+        </div>
+        <iframe title="Demo D" src="./demo-timeline.html"></iframe>
+        <p class="card-copy">把一次 run 看成事件轨迹，适合后续接源码证据、测试定位和最小实验。</p>
+        <a class="open-link" href="./demo-timeline.html">打开完整 Demo</a>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

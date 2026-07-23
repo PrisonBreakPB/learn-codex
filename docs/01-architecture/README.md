@@ -20,7 +20,7 @@
 | --- | --- | --- |
 | 命令与界面 | 接收用户操作、渲染终端交互 | `cli`、`tui` |
 | App Server 与协议 | 用 JSON-RPC 连接客户端和核心会话，翻译事件 | `app-server`、`app-server-protocol`、`app-server-transport` |
-| 核心 Agent Runtime | 管理 thread、turn、采样、任务和会话状态 | `core` |
+| 核心 Agent Runtime | 管理 thread、turn、模型生成请求、任务和会话状态 | `core` |
 | 模型与配置 | 解析配置、选择模型与提供方、发起模型请求 | `config`、`model-provider`、`codex-api` |
 | 工具与执行边界 | 调度工具、执行命令、处理审批和 Sandbox | `core/src/tools`、`exec`、`execpolicy`、`sandboxing`、`apply-patch` |
 | 扩展能力 | 接入 MCP、Skills、Plugins、Connectors 和扩展 API | `codex-mcp`、`skills`、`core-skills`、`core-plugins`、`connectors`、`ext` |
@@ -100,4 +100,4 @@ flowchart TD
 
 ## 下一章
 
-继续阅读 [02：一次 Agent Turn 的真实调用链](../02-agent-turn/README.md)，从用户输入开始，追踪新 turn、steer、模型采样、工具输出和事件回传。
+继续阅读 [02：一次 Agent Turn 的真实调用链](../02-agent-turn/README.md)，从用户输入开始，追踪新 turn、steer、模型生成请求、工具输出和事件回传。

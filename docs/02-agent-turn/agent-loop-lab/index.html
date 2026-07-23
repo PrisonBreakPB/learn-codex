@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="learn-codex 的 8 轮 Agent Loop 教学回放">
+  <title>8 轮 Agent Loop 回放 | learn-codex</title>
+  <link rel="stylesheet" href="./loop.css">
+</head>
+<body>
+  <main class="loop-lab" data-loop-lab>
+    <header class="lab-header">
+      <p class="eyebrow">learn-codex / 02 Agent Turn</p>
+      <h1>8 轮 Agent Loop 回放</h1>
+      <p class="intro">
+        只看一条循环：历史组装、请求模型生成、工具调用、结果回写，再带着更新后的历史进入下一轮。
+      </p>
+    </header>
+
+    <section class="lab-toolbar" aria-label="回放控制">
+      <div>
+        <p class="toolbar-label">当前进度</p>
+        <p class="round-count" aria-live="polite"></p>
+      </div>
+      <div class="toolbar-actions">
+        <button class="icon-button" type="button" data-action="previous" title="上一轮" aria-label="上一轮">
+          <span aria-hidden="true">&#8592;</span>
+        </button>
+        <button class="icon-button" type="button" data-action="next" title="下一轮" aria-label="下一轮">
+          <span aria-hidden="true">&#8594;</span>
+        </button>
+        <button class="icon-button" type="button" data-action="autoplay" title="自动播放" aria-label="自动播放" aria-pressed="false">
+          <span aria-hidden="true">&#9654;</span>
+        </button>
+        <button class="icon-button" type="button" data-action="reset" title="从第一轮重新开始" aria-label="从第一轮重新开始">
+          <span aria-hidden="true">&#8635;</span>
+        </button>
+      </div>
+    </section>
+
+    <section class="lab-layout" aria-label="Agent Loop 可视化">
+      <section class="cycle-panel">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">同一个 turn 内</p>
+            <h2>循环如何继续</h2>
+          </div>
+          <span class="cycle-status"></span>
+        </div>
+
+        <div class="cycle-grid" aria-label="历史、模型生成请求、工具调用和结果回写形成循环">
+          <article class="loop-node" data-node="context">
+            <span class="node-index">1</span>
+            <h3>组装上下文</h3>
+            <p>历史成为本次模型生成请求的输入。</p>
+          </article>
+          <div class="cycle-arrow arrow-right" data-edge="context-model" aria-hidden="true">&#8594;</div>
+          <article class="loop-node" data-node="model">
+            <span class="node-index">2</span>
+            <h3>请求模型生成</h3>
+            <p>模型输出工具调用或最终回复。</p>
+          </article>
+          <div class="cycle-arrow arrow-down" data-edge="model-tool" aria-hidden="true">&#8595;</div>
+          <article class="loop-node" data-node="tool">
+            <span class="node-index">3</span>
+            <h3>执行工具</h3>
+            <p>工具运行并返回可记录的结果。</p>
+          </article>
+          <div class="cycle-arrow arrow-left" data-edge="tool-history" aria-hidden="true">&#8592;</div>
+          <article class="loop-node" data-node="history">
+            <span class="node-index">4</span>
+            <h3>写回历史</h3>
+            <p>工具结果追加后，可被下一轮看到。</p>
+          </article>
+          <div class="cycle-arrow arrow-up" data-edge="history-context" aria-hidden="true">&#8593;</div>
+        </div>
+
+        <p class="cycle-caption" aria-live="polite"></p>
+      </section>
+
+      <aside class="history-panel">
+        <div class="section-heading">
+          <div>
+            <p class="section-kicker">动态追加</p>
+            <h2>History</h2>
+          </div>
+          <span class="history-count"></span>
+        </div>
+        <ol class="history-list"></ol>
+      </aside>
+    </section>
+
+    <section class="round-panel">
+      <div class="round-summary"></div>
+      <div class="round-track" aria-label="选择要查看的模型生成请求轮次"></div>
+    </section>
+
+    <footer class="lab-note">
+      <strong>教学边界：</strong>这是为了展示循环结构而设计的预设回放，不是某次真实 Codex 会话的逐项日志。
+      上游 `rust-v0.145.0` 中 `run_turn`、`run_sampling_request` 与工具结果回写机制，是本页说明的源码依据。
+    </footer>
+  </main>
+
+  <script src="./loop.js"></script>
+</body>
+</html>
