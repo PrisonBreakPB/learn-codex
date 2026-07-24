@@ -12,38 +12,23 @@
 
   const ROUNDS = [
     {
-      title: "先查看学习材料的范围",
-      decision: "模型需要先知道当前项目有哪些学习章节，再决定从哪里查找 Agent Loop 的证据。",
       toolCall: "list_files(docs/)",
-      toolResult: "01-architecture/、02-agent-turn/、README.md",
-      historyNote: "工具结果写入 History，下一轮可以据此定位第 02 章。"
+      toolResult: "01-architecture/、02-agent-turn/、README.md"
     },
     {
-      title: "定位 Agent Loop 的入口",
-      decision: "模型根据章节范围，在上游源码中查找负责普通 turn 的核心循环。",
       toolCall: "search_text(\"run_turn\")",
-      toolResult: "定位到 core/src/session/turn.rs 中的 run_turn。",
-      historyNote: "新的工具结果与前一轮内容一起保留，下一轮可以直接读取循环入口。"
+      toolResult: "定位到 core/src/session/turn.rs 中的 run_turn。"
     },
     {
-      title: "检查模型生成请求的构建",
-      decision: "模型继续查看请求模型生成前，历史是怎样被整理成提示词输入的。",
       toolCall: "read_file(turn.rs: run_sampling_request)",
-      toolResult: "提示词输入来自当前历史，并会经过 build_prompt 组装。",
-      historyNote: "现在的 History 同时包含工具输出和它们的来源顺序。"
+      toolResult: "提示词输入来自当前历史，并会经过 build_prompt 组装。"
     },
     {
-      title: "检查工具结果的处理",
-      decision: "模型定位工具输出完成后怎样转成可继续使用的结果项。",
       toolCall: "search_text(\"handle_output_item_done\")",
-      toolResult: "工具调用项会由核心处理，并由工具运行时返回结果。",
-      historyNote: "至此 History 已包含循环入口、请求构建和工具结果回写的关键证据。"
+      toolResult: "工具调用项会由核心处理，并由工具运行时返回结果。"
     },
     {
-      title: "给出最终回复并完成 turn",
-      decision: "模型已经拥有足够上下文，因此输出自然语言回复，不再请求工具。",
-      finalAnswer: "工具结果会追加到会话历史；同一个 run_turn 再次请求模型生成时，更新后的历史会参与提示词组装。",
-      historyNote: "最终助手消息也会被记录；此处没有后续工具调用，当前 turn 完成。"
+      finalAnswer: "工具结果会追加到会话历史；同一个 run_turn 再次请求模型生成时，更新后的历史会参与提示词组装。"
     }
   ];
 
@@ -91,14 +76,6 @@
 
   function queryAll(selector, root) {
     return Array.from((root || document).querySelectorAll(selector));
-  }
-
-  function escapeHtml(value) {
-    return value
-      .replaceAll("&", "&amp;")
-      .replaceAll("<", "&lt;")
-      .replaceAll(">", "&gt;")
-      .replaceAll("\"", "&quot;");
   }
 
   function historyForRound(roundIndex) {
@@ -167,55 +144,6 @@
     });
   }
 
-  function renderRoundSummary(root) {
-    const round = ROUNDS[currentRound];
-    const events = round.finalAnswer
-      ? [
-          "History",
-          "请求模型生成",
-          "assistant message",
-          "turn completed"
-        ]
-      : [
-          "History",
-          "请求模型生成",
-          `tool_call: ${round.toolCall}`,
-          `tool result: ${round.toolResult}`
-        ];
-
-    query(".round-summary", root).innerHTML = `
-      <p class="round-eyebrow">第 ${currentRound + 1} 次模型生成请求</p>
-      <h2>${round.title}</h2>
-      <p>${round.decision}</p>
-      <div class="event-line">
-        ${events.map((event, index) => `
-          ${index ? '<span class="event-arrow" aria-hidden="true">&#8594;</span>' : ""}
-          <code class="event-chip">${escapeHtml(event)}</code>
-        `).join("")}
-      </div>
-      <p><strong>History 的变化：</strong>${round.historyNote}</p>
-    `;
-  }
-
-  function renderRoundTrack(root) {
-    query(".round-track", root).innerHTML = ROUNDS
-      .map((round, index) => {
-        const state = index < currentRound ? "is-complete" : index === currentRound ? "is-current" : "";
-        return `
-          <button
-            class="round-button ${state}"
-            type="button"
-            data-round="${index}"
-            aria-label="查看第 ${index + 1} 次模型生成请求：${round.title}"
-            aria-current="${index === currentRound ? "step" : "false"}"
-          >
-            <span>${index + 1}</span>
-          </button>
-        `;
-      })
-      .join("");
-  }
-
   function renderToolbar(root) {
     query(".round-count", root).textContent = `第 ${currentRound + 1} / ${ROUNDS.length} 轮`;
     query('[data-action="previous"]', root).disabled = currentRound === 0;
@@ -278,16 +206,14 @@
 
     const button = query('[data-action="autoplay"]', root);
     button.setAttribute("aria-pressed", "false");
-    button.title = "开始自动播放轮次";
-    button.dataset.tooltip = "开始自动播放轮次";
-    button.setAttribute("aria-label", "开始自动播放轮次");
+    button.title = "自动播放";
+    button.dataset.tooltip = "自动播放";
+    button.setAttribute("aria-label", "自动播放");
   }
 
   function render(root) {
     renderToolbar(root);
     renderHistory(root);
-    renderRoundSummary(root);
-    renderRoundTrack(root);
 
     if (autoplayTimer) {
       startCycleAnimation(root);
@@ -304,13 +230,6 @@
   function mount(root) {
     root.addEventListener("click", (event) => {
       const actionButton = event.target.closest("[data-action]");
-      const roundButton = event.target.closest("[data-round]");
-
-      if (roundButton) {
-        stopAutoplay(root);
-        setRound(root, Number(roundButton.dataset.round));
-        return;
-      }
 
       if (!actionButton) {
         return;
@@ -333,9 +252,9 @@
         }
 
         actionButton.setAttribute("aria-pressed", "true");
-        actionButton.title = "暂停自动播放轮次";
-        actionButton.dataset.tooltip = "暂停自动播放轮次";
-        actionButton.setAttribute("aria-label", "暂停自动播放轮次");
+        actionButton.title = "暂停";
+        actionButton.dataset.tooltip = "暂停";
+        actionButton.setAttribute("aria-label", "暂停");
         startCycleAnimation(root);
         autoplayTimer = setInterval(() => {
           if (currentRound === ROUNDS.length - 1) {
