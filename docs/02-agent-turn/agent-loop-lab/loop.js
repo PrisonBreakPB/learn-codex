@@ -129,17 +129,42 @@
     return entries;
   }
 
+  function createHistoryEntry(entry) {
+    const item = document.createElement("li");
+    const role = document.createElement("span");
+    const copy = document.createElement("span");
+
+    item.className = "history-entry";
+    item.dataset.role = entry.role;
+    role.className = "history-role";
+    role.textContent = entry.role;
+    copy.className = "history-copy";
+    copy.textContent = entry.text;
+    item.append(role, copy);
+
+    return item;
+  }
+
   function renderHistory(root) {
     const entries = historyForRound(currentRound);
+    const list = query(".history-list", root);
+
     query(".history-count", root).textContent = `${entries.length} 条消息`;
-    query(".history-list", root).innerHTML = entries
-      .map((entry) => `
-        <li class="history-entry ${entry.isNew ? "is-new" : ""}" data-role="${entry.role}">
-          <span class="history-role">${entry.role}</span>
-          <span class="history-copy">${escapeHtml(entry.text)}</span>
-        </li>
-      `)
-      .join("");
+
+    while (list.children.length > entries.length) {
+      list.lastElementChild.remove();
+    }
+
+    entries.forEach((entry, index) => {
+      let item = list.children[index];
+
+      if (!item) {
+        item = createHistoryEntry(entry);
+        list.append(item);
+      }
+
+      item.classList.toggle("is-new", entry.isNew);
+    });
   }
 
   function renderRoundSummary(root) {
@@ -194,7 +219,6 @@
   function renderToolbar(root) {
     query(".round-count", root).textContent = `第 ${currentRound + 1} / ${ROUNDS.length} 轮`;
     query('[data-action="previous"]', root).disabled = currentRound === 0;
-    query('[data-action="next"]', root).disabled = currentRound === ROUNDS.length - 1;
   }
 
   function clearPhaseTimer() {
@@ -237,16 +261,26 @@
     }, 1100);
   }
 
+  function showCycleStart(root) {
+    clearPhaseTimer();
+    phaseIndex = 0;
+    const phases = currentRound === ROUNDS.length - 1 ? FINAL_PHASES : PHASES;
+    setCyclePhase(root, phases);
+  }
+
   function stopAutoplay(root) {
     if (autoplayTimer) {
       clearInterval(autoplayTimer);
       autoplayTimer = null;
     }
 
+    showCycleStart(root);
+
     const button = query('[data-action="autoplay"]', root);
     button.setAttribute("aria-pressed", "false");
-    button.title = "自动播放";
-    button.setAttribute("aria-label", "自动播放");
+    button.title = "开始自动播放轮次";
+    button.dataset.tooltip = "开始自动播放轮次";
+    button.setAttribute("aria-label", "开始自动播放轮次");
   }
 
   function render(root) {
@@ -254,7 +288,12 @@
     renderHistory(root);
     renderRoundSummary(root);
     renderRoundTrack(root);
-    startCycleAnimation(root);
+
+    if (autoplayTimer) {
+      startCycleAnimation(root);
+    } else {
+      showCycleStart(root);
+    }
   }
 
   function setRound(root, nextRound) {
@@ -283,7 +322,7 @@
         setRound(root, currentRound - 1);
       } else if (action === "next") {
         stopAutoplay(root);
-        setRound(root, currentRound + 1);
+        setRound(root, (currentRound + 1) % ROUNDS.length);
       } else if (action === "reset") {
         stopAutoplay(root);
         setRound(root, 0);
@@ -294,8 +333,10 @@
         }
 
         actionButton.setAttribute("aria-pressed", "true");
-        actionButton.title = "暂停自动播放";
-        actionButton.setAttribute("aria-label", "暂停自动播放");
+        actionButton.title = "暂停自动播放轮次";
+        actionButton.dataset.tooltip = "暂停自动播放轮次";
+        actionButton.setAttribute("aria-label", "暂停自动播放轮次");
+        startCycleAnimation(root);
         autoplayTimer = setInterval(() => {
           if (currentRound === ROUNDS.length - 1) {
             stopAutoplay(root);
@@ -306,6 +347,7 @@
       }
     });
 
+    stopAutoplay(root);
     render(root);
   }
 

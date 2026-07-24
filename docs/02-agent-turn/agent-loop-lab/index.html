@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="description" content="learn-codex 的 5 轮 Agent Loop 教学回放">
   <title>5 轮 Agent Loop 回放 | learn-codex</title>
-  <link rel="stylesheet" href="./loop.css">
+  <link rel="stylesheet" href="./loop.css?v=history-sync-2">
 </head>
 <body>
   <main class="loop-lab" data-loop-lab>
@@ -23,16 +23,16 @@
         <p class="round-count" aria-live="polite"></p>
       </div>
       <div class="toolbar-actions">
-        <button class="icon-button" type="button" data-action="previous" title="上一轮" aria-label="上一轮">
+        <button class="icon-button" type="button" data-action="previous" data-tooltip="返回上一轮" title="返回上一轮" aria-label="返回上一轮">
           <span aria-hidden="true">&#8592;</span>
         </button>
-        <button class="icon-button" type="button" data-action="next" title="下一轮" aria-label="下一轮">
+        <button class="icon-button" type="button" data-action="next" data-tooltip="进入下一轮；第五轮后回到第一轮" title="进入下一轮；第五轮后回到第一轮" aria-label="进入下一轮；第五轮后回到第一轮">
           <span aria-hidden="true">&#8594;</span>
         </button>
-        <button class="icon-button" type="button" data-action="autoplay" title="自动播放" aria-label="自动播放" aria-pressed="false">
+        <button class="icon-button" type="button" data-action="autoplay" data-tooltip="开始自动播放轮次" title="开始自动播放轮次" aria-label="开始自动播放轮次" aria-pressed="false">
           <span aria-hidden="true">&#9654;</span>
         </button>
-        <button class="icon-button" type="button" data-action="reset" title="从第一轮重新开始" aria-label="从第一轮重新开始">
+        <button class="icon-button" type="button" data-action="reset" data-tooltip="重置并回到第一轮" title="重置并回到第一轮" aria-label="重置并回到第一轮">
           <span aria-hidden="true">&#8635;</span>
         </button>
       </div>
@@ -101,6 +101,6 @@
     </footer>
   </main>
 
-  <script src="./loop.js"></script>
+  <script src="./loop.js?v=history-sync-2"></script>
 </body>
 </html>
