@@ -4,18 +4,18 @@
 >
 > 固定提交：`25af12f7e61572b0bc18ddb1008be543b91519b0`
 
-## 8 轮 Agent Loop 互动回放
+## 5 轮 Agent Loop 互动回放
 
 <iframe
   src="./agent-loop-lab/"
-  title="8 轮 Agent Loop 互动回放"
+  title="5 轮 Agent Loop 互动回放"
   loading="eager"
   style="display:block;width:100%;height:920px;border:1px solid #d0d7de;border-radius:8px;"
 ></iframe>
 
 [在独立页面打开互动回放](./agent-loop-lab/)
 
-这一页刻意只保留 `History -> 请求模型生成 -> 工具调用 -> 结果写回 History` 的循环；前 7 轮展示工具调用如何让历史累加，第 8 轮展示模型在拥有足够上下文后给出最终回复并结束当前 turn。
+这一页刻意只保留 `History -> 请求模型生成 -> 工具调用 -> 结果写回 History` 的循环；前 4 轮展示工具调用如何让历史累加，第 5 轮展示模型在拥有足够上下文后给出最终回复并结束当前 turn。
 
 互动回放使用预设教学数据，不调用真实模型或工具，也不是某次真实会话的逐项日志；循环机制和源码定位仍以本章固定上游基线为准。GitHub 的 Markdown 文件浏览页不会执行页面脚本，请通过 GitHub Pages 教程查看嵌入版本。
 

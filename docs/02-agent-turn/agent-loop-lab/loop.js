@@ -19,25 +19,11 @@
       historyNote: "工具结果写入 History，下一轮可以据此定位第 02 章。"
     },
     {
-      title: "读取第 02 章的问题定义",
-      decision: "模型读取章节开头，确认学习目标是追踪一次 turn 内的调用与回流。",
-      toolCall: "read_file(02-agent-turn/README.md)",
-      toolResult: "问题包含 turn、steer、工具结果回写和 TUI 事件。",
-      historyNote: "新的 tool result 与前一轮结果一起保留，不会覆盖旧消息。"
-    },
-    {
       title: "定位 Agent Loop 的入口",
-      decision: "模型在上游源码中查找负责普通 turn 的核心循环。",
+      decision: "模型根据章节范围，在上游源码中查找负责普通 turn 的核心循环。",
       toolCall: "search_text(\"run_turn\")",
       toolResult: "定位到 core/src/session/turn.rs 中的 run_turn。",
-      historyNote: "下一轮能同时看到用户问题、章节范围和 run_turn 的源码位置。"
-    },
-    {
-      title: "查看循环的输出分支",
-      decision: "模型读取 run_turn 附近的说明，区分工具调用与普通助手消息。",
-      toolCall: "read_file(turn.rs: run_turn)",
-      toolResult: "工具调用会执行，并把输出带入下一次模型生成请求。",
-      historyNote: "这一轮把“工具结果会回流”从假设变成历史中可引用的证据。"
+      historyNote: "新的工具结果与前一轮内容一起保留，下一轮可以直接读取循环入口。"
     },
     {
       title: "检查模型生成请求的构建",
@@ -51,14 +37,7 @@
       decision: "模型定位工具输出完成后怎样转成可继续使用的结果项。",
       toolCall: "search_text(\"handle_output_item_done\")",
       toolResult: "工具调用项会由核心处理，并由工具运行时返回结果。",
-      historyNote: "这一轮补全“模型提出调用”到“核心接收结果”的中间环节。"
-    },
-    {
-      title: "整理可回答的证据",
-      decision: "模型基于已累积的历史，核对循环顺序是否完整、是否还有需要补充的上下文。",
-      toolCall: "compare_history_entries()",
-      toolResult: "上下文已包含用户问题、7 次工具调用和对应的工具结果。",
-      historyNote: "History 不是展示用日志，而是下一次模型生成请求实际可见的输入来源。"
+      historyNote: "至此 History 已包含循环入口、请求构建和工具结果回写的关键证据。"
     },
     {
       title: "给出最终回复并完成 turn",
